@@ -1,5 +1,6 @@
 from tkinter import *
 import os
+import test
 
 class MenuGUI:
     def __init__(self, master):
@@ -24,6 +25,7 @@ class MenuGUI:
                 w = Button(master, text = str(chanson), command=lancerChanson(str(chanson))).place(x = 100, y = (i * 50) + 50) # faire que le buton lance l'ecran pour selectionner la chason ou pas
                 i += 1
             break
+        #test.__init__(self, master)
 
 largueur = 720
 ancheur = 480
