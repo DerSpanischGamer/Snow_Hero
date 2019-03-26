@@ -5,11 +5,10 @@ import os
 # Importer pygame surtout pour jouer les chasons
 import pygame
 from pygame import mixer
-
-
-# TODO: fixer le volume (mettre un slider ?) aussi faire beau pour qu'on puisse voir toutes les infos
-
-
+# Importer json pour pouvoir ouvrir des fichiers jsons
+import json
+# Importer winsound
+import winsound
 
 root = Tk()
 
@@ -23,9 +22,22 @@ ancheur = 480
 
 chansons = [] # une liste qui garde tous les dossiers avec des chasons dedans
 
+volume = DoubleVar()
+
+titre = "Titre"
+auteur = "Auteur"
+description = "Description"
+image = ""
+
+# Charger la configuration
+
+with open('./config.json') as f:
+    donnees = json.load(f)
+    volume = donnees['volume']
+
 # Zones des fonctions
 def sortir():
-    exit()
+    root.destroy()
 
 def key(event):
     print("pressed", repr(event.char))
@@ -37,6 +49,18 @@ def pause(event):
 def callback(event):
     print ("clicked at", event.x, event.y)
 
+
+def actuVol(d):
+    volume = eval(d)
+    pygame.mixer.music.set_volume(volume)
+
+    with open("./config.json") as f:
+        d = json.load(f)
+        d['volume'] = volume
+
+        with open("./config.json", "w") as e:
+            json.dump(d, e)
+
 # Dessiner le menu principal
 
 frame = Frame(root, width = largueur, height = ancheur)
@@ -46,8 +70,10 @@ Button(text = "Sortir", command = sortir).place(x = 360, y = 450)
 
 # Preparer pygames pour jouer des chasons
 
-pygame.mixer.pre_init(44100, 16, 2, 4096)
 pygame.init()
+pygame.mixer.pre_init(frequency = 22050, size = -16, channels = 2, buffer = 4096)
+pygame.mixer.init()
+pygame.mixer.music.set_volume(volume)
 
 # Regarder les fichiers qui sont en ./chansons et les montrer
 
@@ -62,19 +88,29 @@ for dos in os.walk(os.path.curdir + "//chansons"): # on prend une liste de tous 
     for chanson in dos[1]: # dedans l'object dos, seulement nous interesse le deuxieme element (on commence par 0), mais on ne peut pas faire une variable x qui soit egale au truc, on doit faire une etape intermediare avec la boucle for :(
         listbox.insert(END, str(chanson))
         chansons.append(str(chanson))
-    listbox.place(x = 310, y = 70)
+    listbox.place(x = 50, y = 70)
     scrollbar.config(command = listbox.yview)
 
     def lancerChanson():
         try:
             dir = chansons[listbox.curselection()[0]]
-            print(dir)
         except:
             Label(text = "Selectionne une chason", bg = "red").place(x = 315, y = 260)
             winsound.Beep(300, 100)
 
-    Button(text = "Jouer", command = lancerChanson).place(x = 360, y = 240)
+    Button(text = "Jouer", command = lancerChanson).place(x = 80, y = 240)
     break # break car seulement le premier element de la liste nous interesse car c'est le seul qui dis les dossiers dedans la URL choisie
+
+if len(chansons) != 0:
+    listbox.select_set(0)
+    dir = chansons[listbox.curselection()[0]]
+
+# Dessiner la preselection de l'image
+
+w = Scale(root, from_=0, to=1, resolution = 0.01, command = actuVol, orient = HORIZONTAL).place(x = 215, y = 248)
+w.pack()
+print(w)
+# TODO: Nicoly tu fais ca, tu dois dessiner a droite une partie ou il y a toute la description de la chason, c'est moi qui va te donner tous les donnees sur la chason tqt
 
 # Configurer les binds
 
@@ -85,15 +121,14 @@ frame.pack()
 frame.focus_set()
 
 selec = ""
-sound = pygame.mixer.Sound("./chanson.aiff")
 while True:
     try:
         if selec != listbox.curselection()[0]:
-            sound.stop()
+            pygame.mixer.music.stop()
             selec = listbox.curselection()[0]
 
-            sound = pygame.mixer.Sound("./chansons/" + chansons[selec] + "/chanson.aiff")
-            sound.play()
+            pygame.mixer.music.load("./chansons/" + chansons[selec] + "/chanson.aiff")
+            pygame.mixer.music.play()
     except:
         pass
     root.update_idletasks()
