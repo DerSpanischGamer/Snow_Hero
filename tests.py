@@ -1,6 +1,8 @@
 from tkinter import *
-import os
-import json
+
+import Threading
+from queue import Queue
+import time
 
 root = Tk()
 largueur = 720
@@ -10,11 +12,12 @@ frame = Frame(root, width = largueur, height = ancheur)
 def key(e):
     print("pressed", e.char)
 
-w = Scale(root, from_=0, to=1, resolution = 0.01, orient = HORIZONTAL)
-w.set(0.5)
-w.pack()
+print_lock = threading.Lock()
+q = Queue()
 
-print(w.get())
+for x in range(10):
+    t = threading.Thread(target = threader)
+    
 
 frame.bind("<KeyPress>", key)        # detecte la touche que l'utilisateur a appuye
 frame.pack()
