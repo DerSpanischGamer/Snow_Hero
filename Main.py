@@ -1,21 +1,19 @@
-# coding=UTF-8
 # Importer tkinter pour pouvoir faire une fenetre
 from tkinter import *
 # Importer os pour pouvoir acceder aux dossiers
 import os
-# Importer pygame surtout pour jouer les chasons
+# Importer pygame surtout pour jouer les chasons, rien d'autre
 import pygame
 from pygame import mixer
 # Importer json pour pouvoir ouvrir des fichiers jsons
 import json
-# Importer scaleinsound
-import winsound
+# Importer winsound pour jouer des beeps
+#import winsound
+import subprocess
 
 root = Tk()
 
 # Zone des variables
-pause = False    # le jeu est-il pause?
-jeuActif = False # false si le joueur joue pas, true s'il joue
 dir = ""         # le directory de la chanson qui a été selectionnée
 
 largueur = 720
@@ -34,7 +32,8 @@ image = ""
 
 with open('./config.json') as f:
     donnees = json.load(f)
-    volume = donnees['volume']
+
+    volume = donnees['volume'] # prendre le volume de la configuration de l'utilisateur
 
 # Zones des fonctions
 def sortir():
@@ -42,10 +41,6 @@ def sortir():
 
 def key(event):
     print("pressed", repr(event.char))
-
-def pause(event):
-    if jeuActif:
-        pause = True
 
 def callback(event):
     print ("clicked at", event.x, event.y)
@@ -78,9 +73,6 @@ pygame.mixer.music.set_volume(volume)
 
 # Regarder les fichiers qui sont en ./chansons et les montrer
 
-def test():
-    print("lmao")
-
 i = 0
 for dos in os.walk(os.path.curdir + "//chansons"): # on prend une liste de tous les dossiers et sous dossiers
 
@@ -96,11 +88,9 @@ for dos in os.walk(os.path.curdir + "//chansons"): # on prend une liste de tous 
     scrollbar.config(command = listbox.yview)
 
     def lancerChanson():
-        try:
-            dir = chansons[listbox.curselection()[0]]
-        except:
-            Label(text = "Selectionne une chason", bg = "red").place(x = 315, y = 260)
-            winsound.Beep(300, 100)
+        subprocess.call(["python3 ", "./Jeu.py ", str(volume), str(dir)])
+
+        pygame.mixer.music.stop()
 
     Button(text = "Jouer", command = lancerChanson).place(x = 80, y = 240)
     break # break car seulement le premier element de la liste nous interesse car c'est le seul qui dis les dossiers dedans la URL choisie
@@ -110,6 +100,7 @@ if len(chansons) != 0: # Selectioner la premiere chason
     listbox.select_set(0)
     dir = chansons[listbox.curselection()[0]]
 
+# Scale est le petit slider qui nous laisse choisir le volume
 scale = Scale(root, from_=0, to=1, resolution = 0.01, orient = HORIZONTAL)
 scale.set(volume)
 scale.place(x = 215, y = 248)
@@ -120,7 +111,6 @@ scale.config(command = actuVol)
 
 # Configurer les binds
 
-frame.bind("<FocusOut>", pause) # l'utilisateur n'a pas le jeu selectionne, du coup on met en pause s'il etait en train de jouer
 frame.bind("<Button-1>", callback) # fait un printe d'ou on a clique
 frame.bind("<Key>", key)        # detecte la touche que l'utilisateur a appuye
 frame.pack()
@@ -136,8 +126,6 @@ while True:
 
             pygame.mixer.music.load("./chansons/" + chansons[selec] + "/chanson.aiff")
             pygame.mixer.music.play()
-        # Cette partie gère le volume
-
     except:
         pass
     try:
