@@ -1,3 +1,4 @@
+# coding=UTF-8
 # Importer tkinter pour pouvoir faire une fenetre
 from tkinter import *
 # Importer os pour pouvoir acceder aux dossiers
