@@ -8,7 +8,7 @@ from pygame import mixer
 # Importer json pour pouvoir ouvrir des fichiers jsons
 import json
 # Importer winsound pour jouer des beeps
-#import winsound
+import winsound
 import subprocess
 
 root = Tk()
@@ -88,7 +88,7 @@ for dos in os.walk(os.path.curdir + "//chansons"): # on prend une liste de tous 
     scrollbar.config(command = listbox.yview)
 
     def lancerChanson():
-        subprocess.call(["python3 ", "./Jeu.py ", str(volume), str(dir)])
+        subprocess.call(["python ", "./Jeu.py ", str(volume), str(dir)])
 
         pygame.mixer.music.stop()
 
