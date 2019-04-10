@@ -8,7 +8,7 @@ import pygame
 from pygame import mixer
 # Importer json pour pouvoir ouvrir des fichiers jsons
 import json
-# Importer winsound
+# Importer scaleinsound
 import winsound
 
 root = Tk()
@@ -78,6 +78,9 @@ pygame.mixer.music.set_volume(volume)
 
 # Regarder les fichiers qui sont en ./chansons et les montrer
 
+def test():
+    print("lmao")
+
 i = 0
 for dos in os.walk(os.path.curdir + "//chansons"): # on prend une liste de tous les dossiers et sous dossiers
 
@@ -102,16 +105,18 @@ for dos in os.walk(os.path.curdir + "//chansons"): # on prend une liste de tous 
     Button(text = "Jouer", command = lancerChanson).place(x = 80, y = 240)
     break # break car seulement le premier element de la liste nous interesse car c'est le seul qui dis les dossiers dedans la URL choisie
 
-if len(chansons) != 0:
+
+if len(chansons) != 0: # Selectioner la premiere chason
     listbox.select_set(0)
     dir = chansons[listbox.curselection()[0]]
 
-# Dessiner la preselection de l'image
+scale = Scale(root, from_=0, to=1, resolution = 0.01, orient = HORIZONTAL)
+scale.set(volume)
+scale.place(x = 215, y = 248)
+scale.config(command = actuVol)
 
-w = Scale(root, from_=0, to=1, resolution = 0.01, command = actuVol, orient = HORIZONTAL).place(x = 215, y = 248)
-w.pack()
-print(w)
 # TODO: Nicoly tu fais ca, tu dois dessiner a droite une partie ou il y a toute la description de la chason, c'est moi qui va te donner tous les donnees sur la chason tqt
+# Dessiner la preselection de l'image
 
 # Configurer les binds
 
@@ -124,16 +129,23 @@ frame.focus_set()
 selec = ""
 while True:
     try:
+        # Cette partie gère la chanson selectionee
         if selec != listbox.curselection()[0]:
             pygame.mixer.music.stop()
             selec = listbox.curselection()[0]
 
             pygame.mixer.music.load("./chansons/" + chansons[selec] + "/chanson.aiff")
             pygame.mixer.music.play()
+        # Cette partie gère le volume
+
     except:
         pass
-    root.update_idletasks()
-    root.update()
+    try:
+        root.update_idletasks()
+        root.update()
+    except:
+        print("Bye bye :)")
+        break
 
 root.mainloop()
 
