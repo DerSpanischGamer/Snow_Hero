@@ -46,6 +46,8 @@ fichier.close()
 
 # Ici il faudra dessiner la guitarre, le fond et les points
 
+canvas = Canvas()
+create_rectangle(200, 200, 400, 400, fill = "black", outline = "white")
 
 # Preparer pygames pour jouer des chasons
 
@@ -63,5 +65,19 @@ except:
     pass
 
 # Finalement on lance la chanson avec les carres
+
+# Celui-ci sera le responsable de creer les rectangles
+class Shape:
+    def __init__(self, id, coords, canvas):
+        self.id = id
+        self.coords = coords
+    def spawn(self, canvas):
+        """Crée un rectagle"""
+        canvas.create_rectangle(self.coords, tag="note")
+
+# Meme fonction pour bouger et creer les carres
+def bougerSpawnerCarres():
+    while !pause:
+        print("Faire plus tard")
 
 root.mainloop()
