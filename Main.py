@@ -10,8 +10,17 @@ import json
 # Importer winsound pour jouer des beeps
 import winsound
 import subprocess
+from PIL import Image, ImageTk
+
+
 
 root = Tk()
+image = Image.open("pic.png")
+photo = ImageTk.PhotoImage(image)
+
+label = Label(image=photo)
+label.image = photo # keep a reference!
+label.pack()
 
 # Zone des variables
 dir = ""         # le directory de la chanson qui a été selectionnée
@@ -22,6 +31,8 @@ ancheur = 480
 chansons = [] # une liste qui garde tous les dossiers avec des chasons dedans
 
 volume = DoubleVar()
+
+tout = "Titre auteur description"
 
 titre = "Titre"
 auteur = "Auteur"
@@ -36,6 +47,7 @@ with open('./config.json') as f:
     volume = donnees['volume'] # prendre le volume de la configuration de l'utilisateur
 
 # Zones des fonctions
+
 def sortir():
     root.destroy()
 
@@ -57,7 +69,9 @@ def actuVol(d):
         with open("./config.json", "w") as e:
             json.dump(d, e)
 
+
 # Dessiner le menu principal
+
 
 frame = Frame(root, width = largueur, height = ancheur)
 
