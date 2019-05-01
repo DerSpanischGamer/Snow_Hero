@@ -7,8 +7,7 @@ import pygame
 from pygame import mixer
 # Importer json pour pouvoir ouvrir des fichiers jsons
 import json
-# Importer winsound pour jouer des beeps
-import winsound
+# Importer subprocess pour pouvoir faire un appel a une nouvelle application de python
 import subprocess
 from PIL import Image, ImageTk
 
@@ -23,7 +22,7 @@ label.image = photo # keep a reference!
 label.pack()
 
 # Zone des variables
-dir = ""         # le directory de la chanson qui a été selectionnée
+dir = "" # le directory de la chanson qui a été selectionnée
 
 largueur = 720
 ancheur = 480
@@ -102,7 +101,7 @@ for dos in os.walk(os.path.curdir + "//chansons"): # on prend une liste de tous 
     scrollbar.config(command = listbox.yview)
 
     def lancerChanson():
-        subprocess.call(["python ", "./Jeu.py ", str(volume), str(dir)])
+        subprocess.call(["python3 ", "Jeu.py ", str(volume), str(dir)])
 
         pygame.mixer.music.stop()
 
