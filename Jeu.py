@@ -28,26 +28,30 @@ carres = []
 chanson = [] # chaque element de l'array represente une actualisation du jeu qui doit se passer chaque "actuTemps" secondes
 actuTemps = 0.125
 
-frame = Frame(root, height = ancheur, width = largueur)
+frame = Frame(root)
 
-try:
-    volume = eval(sys.argv[1])
-    dir = sys.argv[2]
-except:
-    print("Erreur avec les arguments ._.")
-    sortir()
+volume = 0.2 # effacer si ce qu'il y a juste apres n'est pas commente
+# Decomenter si a la fin on a reussi a faire qu'on puisse lire des fichiers
+# try:
+#     volume = eval(sys.argv[1])
+#     dir = sys.argv[2]
+# except:
+#     print("Erreur avec les arguments ._.")
+#     sortir()
 
 # On charge le fichier qui gardera tous les donnees
 
-fichier = open("./chansons/" + dir + "/chanson.txt", "r")
-for ligne in fichier:
-    carres.append(ligne)
-fichier.close()
-
 # Ici il faudra dessiner la guitarre, le fond et les points
 
-canvas = Canvas()
-create_rectangle(200, 200, 400, 400, fill = "black", outline = "white")
+canvas = Canvas(root, height = ancheur, width = largueur)
+canvas.pack()
+
+canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
+
+canvas.create_line(255, 0, 255, 480, fill = "white")
+canvas.create_line(325, 0, 325, 480, fill = "white")
+canvas.create_line(395, 0, 395, 480, fill = "white")
+canvas.create_line(465, 0, 465, 480, fill = "white")
 
 # Preparer pygames pour jouer des chasons
 
@@ -77,7 +81,7 @@ class Shape:
 
 # Meme fonction pour bouger et creer les carres
 def bougerSpawnerCarres():
-    while !pause:
+    while not pause:
         print("Faire plus tard")
 
 root.mainloop()
