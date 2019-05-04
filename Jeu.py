@@ -53,6 +53,12 @@ canvas.create_line(325, 0, 325, 480, fill = "white")
 canvas.create_line(395, 0, 395, 480, fill = "white")
 canvas.create_line(465, 0, 465, 480, fill = "white")
 
+canvas.create_rectangle(195, 420, 245, 470, outline = "green")
+canvas.create_rectangle(265, 420, 315, 470, outline = "red")
+canvas.create_rectangle(335, 420, 385, 470, outline = "yellow")
+canvas.create_rectangle(405, 420, 455, 470, outline = "blue")
+canvas.create_rectangle(475, 420, 525, 470, outline = "orange")
+
 # Preparer pygames pour jouer des chasons
 
 pygame.init()
@@ -70,8 +76,7 @@ except:
 
 # Finalement on lance la chanson avec les carres
 
-# Celui-ci sera le responsable de creer les rectangles
-class Shape:
+class Shape: # Celui-ci sera le responsable de creer les rectangles
     def __init__(self, id, coords, canvas):
         self.id = id
         self.coords = coords
@@ -79,9 +84,14 @@ class Shape:
         """Crée un rectagle"""
         canvas.create_rectangle(self.coords, tag="note")
 
-# Meme fonction pour bouger et creer les carres
-def bougerSpawnerCarres():
+def bougerSpawnerCarres(): # Meme fonction pour bouger et creer les carres
     while not pause:
         print("Faire plus tard")
+
+# Gerer les cles
+def key(event):
+    print("pressed", repr(event.char))
+
+frame.bind("<Key>", key) # ajotuer la detection des touches
 
 root.mainloop()

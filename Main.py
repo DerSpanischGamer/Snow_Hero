@@ -14,12 +14,6 @@ from PIL import Image, ImageTk
 
 
 root = Tk()
-image = Image.open("pic.png")
-photo = ImageTk.PhotoImage(image)
-
-label = Label(image=photo)
-label.image = photo # keep a reference!
-label.pack()
 
 # Zone des variables
 dir = "" # le directory de la chanson qui a été selectionnée
@@ -71,11 +65,18 @@ def actuVol(d):
 
 # Dessiner le menu principal
 
-
 frame = Frame(root, width = largueur, height = ancheur)
 
 Label(text = "Snow Hero", font = ("Helvetica", 40)).place(x = 240, y = 0)
 Button(text = "Sortir", command = sortir).place(x = 360, y = 450)
+
+# Dessiner une image derrière
+image = Image.open("pic.png")
+photo = ImageTk.PhotoImage(image)
+
+label = Label(image = photo)
+label.image = photo
+label.pack()
 
 # Preparer pygames pour jouer des chasons
 
