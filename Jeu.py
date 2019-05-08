@@ -11,7 +11,8 @@ import time
 from random import randint
 
 root = Tk()
-
+root.title("Snow Hero !")
+root.resizable(False, False)
 # La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
 def sortir():
     root.destroy()
@@ -28,7 +29,12 @@ dispo = [0, 0, 0, 0, 0]
 colors = ["green", "red", "yellow", "blue", "orange"]
 
 chanson = [] # chaque element de l'array represente une actualisation du jeu qui doit se passer chaque "actuTemps" secondes
-actuTemps = 0.125
+
+actuTemps = 0.05
+blockSpawn = 7
+
+oldtime = - actuTemps - 20 # Utilise pour bouger des blocs
+newtime = 0
 
 frame = Frame(root)
 
@@ -82,25 +88,30 @@ class Shape: # Celui-ci sera le responsable de creer les rectangles
         canvas.create_rectangle(self.coords, tag="note", fill = color)
 
 def bougerCarres(): # Meme fonction pour bouger et creer les carres
+    i = 0
     while not pause:
-        canvas.move("note", 0, 5) # On bouge les notes
-        # Regarder si l'utilsateur a raté la note pour l'effacer
-        notes = canvas.find_withtag("note")
+        newtime = time.time()
+        global oldtime
+        if newtime - oldtime >= actuTemps:
+            oldtime = newtime
+            canvas.move("note", 0, 5) # On bouge les notes
+            # Regarder si l'utilsateur a raté la note pour l'effacer
+            notes = canvas.find_withtag("note")
 
-        for note in notes:
-            if canvas.coords(note)[1] >= 400: canvas.delete(note)
-        canvas.update()     # Et on actualise le canvas
-        if randint(0, 10) > 5: spawnerCarres()
-        for i in range(len(dispo)):
-            dispo[i] -= 1
+            for note in notes:
+                if canvas.coords(note)[1] >= 400: canvas.delete(note)
+            canvas.update()     # Et on actualise le canvas
+
+            i += 1
+            if i > blockSpawn:
+                spawnerCarres()
+                i = 0
         time.sleep(0.01)
+
 
 def spawnerCarres(ligne = 0):
     #l = ligne # Activer si on reussi a faire ce systeme automatique
     l = randint(0, len(lignes) - 1)
-    if dispo[l] < -15:
-        dispo[l] = 0
-    else: return
     carre = Shape(0, ((l * 70) + 195, -50, (l * 70) + 245, 0), canvas)
     lignes[l].append(carre.spawn(canvas, colors[l]))
 
