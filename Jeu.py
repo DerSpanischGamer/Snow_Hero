@@ -4,11 +4,11 @@ from tkinter import *
 from threading import Timer
 # Importer os pour pouvoir acceder aux dossiers
 import os
-# Importer pygame surtout pour jouer les chasons, rien d'autre
-import pygame
-from pygame import mixer
 # Importer json pour pouvoir ouvrir des fichiers jsons
 import json
+
+import time
+from random import randint
 
 root = Tk()
 
@@ -23,7 +23,9 @@ jeuActif = False # false si le joueur joue pas, true s'il joue
 largueur = 720
 ancheur = 480
 
-carres = []
+lignes = [[], [], [], [], []]
+dispo = [0, 0, 0, 0, 0]
+colors = ["green", "red", "yellow", "blue", "orange"]
 
 chanson = [] # chaque element de l'array represente une actualisation du jeu qui doit se passer chaque "actuTemps" secondes
 actuTemps = 0.125
@@ -61,11 +63,6 @@ b4 = canvas.create_rectangle(475, 420, 525, 470, outline = "orange")
 
 # Preparer pygames pour jouer des chasons
 
-pygame.init()
-pygame.mixer.pre_init(frequency = 22050, size = -16, channels = 2, buffer = 4096)
-pygame.mixer.init()
-pygame.mixer.music.set_volume(volume)
-
 # Ici il y aura un probleme (except) si la fenetre a ete detruite avec d'etre montree, c'est a dire, s'il y a eu un probleme pendant que le jeu se loadait
 try:
     frame.bind("<FocusOut>", pause) # l'utilisateur n'a pas le jeu selectionne, du coup on met en pause s'il etait en train de jouer
@@ -80,13 +77,33 @@ class Shape: # Celui-ci sera le responsable de creer les rectangles
     def __init__(self, id, coords, canvas):
         self.id = id
         self.coords = coords
-    def spawn(self, canvas):
+    def spawn(self, canvas, color):
         """Crée un rectagle"""
-        canvas.create_rectangle(self.coords, tag="note")
+        canvas.create_rectangle(self.coords, tag="note", fill = color)
 
-def bougerSpawnerCarres(): # Meme fonction pour bouger et creer les carres
+def bougerCarres(): # Meme fonction pour bouger et creer les carres
     while not pause:
-        print("Faire plus tard")
+        canvas.move("note", 0, 5) # On bouge les notes
+        # Regarder si l'utilsateur a raté la note pour l'effacer
+        notes = canvas.find_withtag("note")
+
+        for note in notes:
+            if canvas.coords(note)[1] >= 400: canvas.delete(note)
+        canvas.update()     # Et on actualise le canvas
+        if randint(0, 10) > 5: spawnerCarres()
+        for i in range(len(dispo)):
+            dispo[i] -= 1
+        time.sleep(0.01)
+
+def spawnerCarres(ligne = 0):
+    #l = ligne # Activer si on reussi a faire ce systeme automatique
+    l = randint(0, len(lignes) - 1)
+    if dispo[l] < -15:
+        dispo[l] = 0
+    else: return
+    carre = Shape(0, ((l * 70) + 195, -50, (l * 70) + 245, 0), canvas)
+    lignes[l].append(carre.spawn(canvas, colors[l]))
+
 
 # Gerer les cles
 def key(event):
@@ -96,4 +113,5 @@ def key(event):
 
 frame.bind("<Key>", key) # ajotuer la detection des touches
 
+bougerCarres()
 root.mainloop()
