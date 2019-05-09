@@ -53,11 +53,11 @@ canvas.create_line(325, 0, 325, 480, fill = "white")
 canvas.create_line(395, 0, 395, 480, fill = "white")
 canvas.create_line(465, 0, 465, 480, fill = "white")
 
-canvas.create_rectangle(195, 420, 245, 470, outline = "green")
-canvas.create_rectangle(265, 420, 315, 470, outline = "red")
-canvas.create_rectangle(335, 420, 385, 470, outline = "yellow")
-canvas.create_rectangle(405, 420, 455, 470, outline = "blue")
-canvas.create_rectangle(475, 420, 525, 470, outline = "orange")
+b0 = canvas.create_rectangle(195, 420, 245, 470, outline = "green")
+b1 = canvas.create_rectangle(265, 420, 315, 470, outline = "red")
+b2 = canvas.create_rectangle(335, 420, 385, 470, outline = "yellow")
+b3 = canvas.create_rectangle(405, 420, 455, 470, outline = "blue")
+b4 = canvas.create_rectangle(475, 420, 525, 470, outline = "orange")
 
 # Preparer pygames pour jouer des chasons
 
@@ -90,7 +90,9 @@ def bougerSpawnerCarres(): # Meme fonction pour bouger et creer les carres
 
 # Gerer les cles
 def key(event):
-    print("pressed", repr(event.char))
+    tecla = event.keycode
+    print("pressed", event.keycode)
+
 
 frame.bind("<Key>", key) # ajotuer la detection des touches
 
