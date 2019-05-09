@@ -26,9 +26,10 @@ ancheur = 480
 lignes = [[], [], [], [], []]
 dispo = [0, 0, 0, 0, 0]
 colors = ["green", "red", "yellow", "blue", "orange"]
+touches = [90, 88, 66, 78, 77] # z, x, b, n, m
 
 chanson = [] # chaque element de l'array represente une actualisation du jeu qui doit se passer chaque "actuTemps" secondes
-actuTemps = 0.125
+actuTemps = 0.750
 
 frame = Frame(root)
 
@@ -61,6 +62,7 @@ b2 = canvas.create_rectangle(335, 420, 385, 470, outline = "yellow")
 b3 = canvas.create_rectangle(405, 420, 455, 470, outline = "blue")
 b4 = canvas.create_rectangle(475, 420, 525, 470, outline = "orange")
 
+carresFin = [b0, b1, b2, b3, b4]
 # Preparer pygames pour jouer des chasons
 
 # Ici il y aura un probleme (except) si la fenetre a ete detruite avec d'etre montree, c'est a dire, s'il y a eu un probleme pendant que le jeu se loadait
@@ -105,12 +107,24 @@ def spawnerCarres(ligne = 0):
     lignes[l].append(carre.spawn(canvas, colors[l]))
 
 
+def callback(event):
+    print ("clicked at", event.x, event.y)
+
 # Gerer les cles
 def key(event):
-    tecla = event.keycode
-    print("pressed", event.keycode)
+    l = -1
+    try:
+        l = touches.index(event.keycode)
+    except:
+        pass
+    if l != -1:
+        canvas.itemconfig(carresFin[l], fill="green")
+        canvas.update()
+        time.sleep(0.01)
+        canvas.itemconfig(carresFin[l], fill="black")
+        canvas.update()
 
-
+frame.bind("<Button-1>", callback) # fait un printe d'ou on a clique
 frame.bind("<Key>", key) # ajotuer la detection des touches
 
 bougerCarres()
