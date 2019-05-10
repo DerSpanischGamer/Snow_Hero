@@ -11,7 +11,8 @@ import time
 from random import randint
 
 root = Tk()
-
+root.title("Snow Hero !")
+root.resizable(False, False)
 # La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
 def sortir():
     root.destroy()
@@ -28,8 +29,15 @@ dispo = [0, 0, 0, 0, 0]
 colors = ["green", "red", "yellow", "blue", "orange"]
 touches = [90, 88, 66, 78, 77] # z, x, b, n, m
 
+reset = False
+
 chanson = [] # chaque element de l'array represente une actualisation du jeu qui doit se passer chaque "actuTemps" secondes
-actuTemps = 0.750
+
+actuTemps = 0.05
+blockSpawn = 7
+
+oldtime = - actuTemps - 20 # Utilise pour bouger des blocs
+newtime = 0
 
 frame = Frame(root)
 
@@ -81,34 +89,50 @@ class Shape: # Celui-ci sera le responsable de creer les rectangles
         self.coords = coords
     def spawn(self, canvas, color):
         """Crée un rectagle"""
-        canvas.create_rectangle(self.coords, tag="note", fill = color)
+        id = canvas.create_rectangle(self.coords, tag="note", fill = color)
+        return id
+
+def checkLine(l):
+    if len(lignes[l]) > 0: print(canvas.coords(lignes[l][0]))
 
 def bougerCarres(): # Meme fonction pour bouger et creer les carres
+    i = 0
     while not pause:
-        canvas.move("note", 0, 5) # On bouge les notes
-        # Regarder si l'utilsateur a raté la note pour l'effacer
-        notes = canvas.find_withtag("note")
+        newtime = time.time()
+        global oldtime
+        if newtime - oldtime >= actuTemps:
+            oldtime = newtime
+            canvas.move("note", 0, 5) # On bouge les notes
+            # Regarder si l'utilsateur a raté la note pour l'effacer
+            notes = canvas.find_withtag("note")
 
-        for note in notes:
-            if canvas.coords(note)[1] >= 400: canvas.delete(note)
-        canvas.update()     # Et on actualise le canvas
-        if randint(0, 10) > 5: spawnerCarres()
-        for i in range(len(dispo)):
-            dispo[i] -= 1
+            for note in notes:
+                if canvas.coords(note)[1] >= 525:
+                    canvas.delete(note)
+                    for ligne in lignes:
+                            if note in ligne:
+                                ligne.remove(note)
+                                break
+            canvas.update()     # Et on actualise le canvas
+
+            i += 1
+            if i > blockSpawn:
+                spawnerCarres()
+                i = 0
+
+            global reset
+            if reset:
+                reset = False
+                for i in range(len(carresFin)):
+                    canvas.itemconfig(carresFin[i], fill="black")
+                canvas.update()
         time.sleep(0.01)
 
 def spawnerCarres(ligne = 0):
     #l = ligne # Activer si on reussi a faire ce systeme automatique
     l = randint(0, len(lignes) - 1)
-    if dispo[l] < -15:
-        dispo[l] = 0
-    else: return
     carre = Shape(0, ((l * 70) + 195, -50, (l * 70) + 245, 0), canvas)
     lignes[l].append(carre.spawn(canvas, colors[l]))
-
-
-def callback(event):
-    print ("clicked at", event.x, event.y)
 
 # Gerer les cles
 def key(event):
@@ -118,13 +142,14 @@ def key(event):
     except:
         pass
     if l != -1:
-        canvas.itemconfig(carresFin[l], fill="green")
-        canvas.update()
-        time.sleep(0.01)
-        canvas.itemconfig(carresFin[l], fill="black")
+        global reset
+        reset = True
+
+        canvas.itemconfig(carresFin[l], fill=colors[l])
         canvas.update()
 
-frame.bind("<Button-1>", callback) # fait un printe d'ou on a clique
+        checkLine(l)
+
 frame.bind("<Key>", key) # ajotuer la detection des touches
 
 bougerCarres()
