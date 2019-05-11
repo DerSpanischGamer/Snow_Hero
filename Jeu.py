@@ -18,15 +18,15 @@ def sortir():
     root.destroy()
 
 # Espace variables
-pause = False    # le jeu est-il pause?
-jeuActif = False # false si le joueur joue pas, true s'il joue
-
 largueur = 720
 ancheur = 480
+
+cen = 455 # centre des carres dont on detecte (carres ou l'utilisateur doit appuyer)
 
 lignes = [[], [], [], [], []]
 dispo = [0, 0, 0, 0, 0]
 colors = ["green", "red", "yellow", "blue", "orange"]
+
 touches = [90, 88, 66, 78, 77] # z, x, b, n, m
 
 reset = False
@@ -34,7 +34,7 @@ reset = False
 chanson = [] # chaque element de l'array represente une actualisation du jeu qui doit se passer chaque "actuTemps" secondes
 
 actuTemps = 0.05
-blockSpawn = 7
+blockSpawn = 15
 
 oldtime = - actuTemps - 20 # Utilise pour bouger des blocs
 newtime = 0
@@ -75,7 +75,6 @@ carresFin = [b0, b1, b2, b3, b4]
 
 # Ici il y aura un probleme (except) si la fenetre a ete detruite avec d'etre montree, c'est a dire, s'il y a eu un probleme pendant que le jeu se loadait
 try:
-    frame.bind("<FocusOut>", pause) # l'utilisateur n'a pas le jeu selectionne, du coup on met en pause s'il etait en train de jouer
     frame.pack()
     frame.focus_set()
 except:
@@ -92,12 +91,13 @@ class Shape: # Celui-ci sera le responsable de creer les rectangles
         id = canvas.create_rectangle(self.coords, tag="note", fill = color)
         return id
 
-def checkLine(l):
-    if len(lignes[l]) > 0: print(canvas.coords(lignes[l][0]))
-
 def bougerCarres(): # Meme fonction pour bouger et creer les carres
-    i = 0
-    while not pause:
+    demarrer.destroy()
+    titre.pack_forget()
+    titre.pack()
+
+    i = 20
+    while True:
         newtime = time.time()
         global oldtime
         if newtime - oldtime >= actuTemps:
@@ -117,7 +117,7 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
 
             i += 1
             if i > blockSpawn:
-                spawnerCarres()
+                spawnerCarres(0)
                 i = 0
 
             global reset
@@ -126,13 +126,22 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
                 for i in range(len(carresFin)):
                     canvas.itemconfig(carresFin[i], fill="black")
                 canvas.update()
-        time.sleep(0.01)
+            time.sleep(0.01)
 
-def spawnerCarres(ligne = 0):
+def spawnerCarres(ligne):
     #l = ligne # Activer si on reussi a faire ce systeme automatique
     l = randint(0, len(lignes) - 1)
+
     carre = Shape(0, ((l * 70) + 195, -50, (l * 70) + 245, 0), canvas)
     lignes[l].append(carre.spawn(canvas, colors[l]))
+
+def detruireCarre(l):
+    if len(lignes[l]) == 0: return # la ligne n'a aucun carre
+
+    coor = canvas.coords(lignes[l][0])[1] + 25 # Coordonnees du centre du carre
+    if coor - cen < 50 and coor - cen > -50: # Ils sont en train de se toucher, du coup on peut le detecter comme une colision
+        canvas.delete(lignes[l][0])
+        lignes[l].pop(0)
 
 # Gerer les cles
 def key(event):
@@ -148,9 +157,17 @@ def key(event):
         canvas.itemconfig(carresFin[l], fill=colors[l])
         canvas.update()
 
-        checkLine(l)
+        detruireCarre(l)
+
+# Dessiner l'ecran pre-jeu
+titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
+titre.pack()
+titre.place(x = 194, y = 0)
+
+demarrer = Button(root, height = 2, width = 9, text = "Commencer", command= lambda: bougerCarres())
+demarrer.pack()
+demarrer.place(x = 325, y = ancheur/2 - 12)
 
 frame.bind("<Key>", key) # ajotuer la detection des touches
 
-bougerCarres()
 root.mainloop()
