@@ -1,18 +1,21 @@
 # Importer tkinter pour pouvoir faire une fenetre
 from tkinter import *
-# Import Timer pour pouvoir appeler des fonctions chaque x secondes
-from threading import Timer
-# Importer os pour pouvoir acceder aux dossiers
-import os
-# Importer json pour pouvoir ouvrir des fichiers jsons
-import json
+# Importer Threading pour avoir un Thread qui gere la guitarre
+import threading
+# Importer serial pour pouvoir se communiquer avec la guitarre
+import serial
+# Importer tout ca pour pouvoir trouver le port de la guitarre
+import serial.tools.list_ports
+
+import asyncio
+
+import atexit
+
+import sys
 
 import time
 from random import randint
 
-root = Tk()
-root.title("Snow Hero !")
-root.resizable(False, False)
 # La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
 def sortir():
     root.destroy()
@@ -29,9 +32,13 @@ colors = ["green", "red", "yellow", "blue", "orange"]
 
 touches = [90, 88, 66, 78, 77] # z, x, b, n, m
 
-reset = False
+carresFin = []
 
-chanson = [] # chaque element de l'array represente une actualisation du jeu qui doit se passer chaque "actuTemps" secondes
+port = ""# Le port auquel la guitarre est connectee
+guitarre = False # Par defaut il n'y a pas de guitarre
+
+reset = False # S'il faut reseter les carres (animation)
+sortir = False # True s'il faut sortir du loop
 
 actuTemps = 0.05
 blockSpawn = 15
@@ -39,46 +46,25 @@ blockSpawn = 15
 oldtime = - actuTemps - 20 # Utilise pour bouger des blocs
 newtime = 0
 
-frame = Frame(root)
+# Gerer les cles
+def key(event):
+    t = event.keycode
+    if t == 27:
+        global sortir
+        sortir = True
+    l = -1
+    try:
+        l = touches.index(t)
+    except:
+        pass
+    if l != -1 and not guitarre:
+        global reset
+        reset = True
 
-volume = 0.2 # effacer si ce qu'il y a juste apres n'est pas commente
-# Decomenter si a la fin on a reussi a faire qu'on puisse lire des fichiers
-# try:
-#     volume = eval(sys.argv[1])
-#     dir = sys.argv[2]
-# except:
-#     print("Erreur avec les arguments ._.")
-#     sortir()
+        canvas.itemconfig(carresFin[l], fill=colors[l])
+        canvas.update()
 
-# On charge le fichier qui gardera tous les donnees
-
-# Ici il faudra dessiner la guitarre, le fond et les points
-
-canvas = Canvas(root, height = ancheur, width = largueur)
-canvas.pack()
-
-canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
-
-canvas.create_line(255, 0, 255, 480, fill = "white")
-canvas.create_line(325, 0, 325, 480, fill = "white")
-canvas.create_line(395, 0, 395, 480, fill = "white")
-canvas.create_line(465, 0, 465, 480, fill = "white")
-
-b0 = canvas.create_rectangle(195, 420, 245, 470, outline = "green")
-b1 = canvas.create_rectangle(265, 420, 315, 470, outline = "red")
-b2 = canvas.create_rectangle(335, 420, 385, 470, outline = "yellow")
-b3 = canvas.create_rectangle(405, 420, 455, 470, outline = "blue")
-b4 = canvas.create_rectangle(475, 420, 525, 470, outline = "orange")
-
-carresFin = [b0, b1, b2, b3, b4]
-# Preparer pygames pour jouer des chasons
-
-# Ici il y aura un probleme (except) si la fenetre a ete detruite avec d'etre montree, c'est a dire, s'il y a eu un probleme pendant que le jeu se loadait
-try:
-    frame.pack()
-    frame.focus_set()
-except:
-    pass
+        detruireCarre(l)
 
 # Finalement on lance la chanson avec les carres
 
@@ -93,8 +79,11 @@ class Shape: # Celui-ci sera le responsable de creer les rectangles
 
 def bougerCarres(): # Meme fonction pour bouger et creer les carres
     demarrer.destroy()
+
     titre.pack_forget()
     titre.pack()
+
+    chercher.destroy()
 
     i = 20
     while True:
@@ -126,6 +115,10 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
                 for i in range(len(carresFin)):
                     canvas.itemconfig(carresFin[i], fill="black")
                 canvas.update()
+
+            global sortir
+            if sortir:
+                break
             time.sleep(0.01)
 
 def spawnerCarres(ligne):
@@ -143,31 +136,83 @@ def detruireCarre(l):
         canvas.delete(lignes[l][0])
         lignes[l].pop(0)
 
-# Gerer les cles
-def key(event):
-    l = -1
-    try:
-        l = touches.index(event.keycode)
-    except:
-        pass
-    if l != -1:
-        global reset
-        reset = True
+async def ecouter():
+    """ Attend les touches sur la guitarre"""
+    ser = serial.Serial(port, 9600)
+    while True:
+        detruireCarre(int(chr(ser.readline()[0])))
+        global sortir
+        if sortir:
+            break
+    root.quit()
 
-        canvas.itemconfig(carresFin[l], fill=colors[l])
-        canvas.update()
 
-        detruireCarre(l)
+def _asyncio_thread(async_loop):
+    async_loop.run_until_complete(ecouter())
 
-# Dessiner l'ecran pre-jeu
-titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
-titre.pack()
-titre.place(x = 194, y = 0)
+def chercherGuitarre(async_loop):
+    ports = list(serial.tools.list_ports.comports())
+    for p in ports:
+        if "Arduino" in p[1]:
+            global port
+            port = p[0]
+            guitarre = True
 
-demarrer = Button(root, height = 2, width = 9, text = "Commencer", command= lambda: bougerCarres())
-demarrer.pack()
-demarrer.place(x = 325, y = ancheur/2 - 12)
+            global chercher
+            chercher.destroy()
 
-frame.bind("<Key>", key) # ajotuer la detection des touches
+            threading.Thread(target=_asyncio_thread, args=(async_loop,)).start()
 
-root.mainloop()
+def exit_handler():
+    async_loop.close()
+    print ('My application is ending!')
+
+if __name__ == '__main__':
+    root = Tk()
+    root.title("Snow Hero !")
+    root.resizable(False, False)
+
+    frame = Frame(root)
+
+    frame.pack()
+    frame.focus_set()
+    frame.bind("<Key>", key) # ajotuer la detection des touches
+
+    canvas = Canvas(root, height = ancheur, width = largueur)
+    canvas.pack()
+
+    # Dessiner l'ecran
+    titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
+    titre.pack()
+    titre.place(x = 194, y = 0)
+
+    demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
+    demarrer.pack()
+    demarrer.place(x = 325, y = ancheur/2 - 12)
+
+    async_loop = asyncio.get_event_loop() # Boucle asyncronisee
+
+    chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(async_loop))
+    chercher.pack()
+    chercher.place(x = 285, y = ancheur/2 + 50)
+
+
+    # Ici on dessine la guitarre, le fond et les points
+    canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
+
+    canvas.create_line(255, 0, 255, 480, fill = "white")
+    canvas.create_line(325, 0, 325, 480, fill = "white")
+    canvas.create_line(395, 0, 395, 480, fill = "white")
+    canvas.create_line(465, 0, 465, 480, fill = "white")
+
+    b0 = canvas.create_rectangle(195, 420, 245, 470, outline = "green")
+    b1 = canvas.create_rectangle(265, 420, 315, 470, outline = "red")
+    b2 = canvas.create_rectangle(335, 420, 385, 470, outline = "yellow")
+    b3 = canvas.create_rectangle(405, 420, 455, 470, outline = "blue")
+    b4 = canvas.create_rectangle(475, 420, 525, 470, outline = "orange")
+
+    carresFin = [b0, b1, b2, b3, b4]
+
+    atexit.register(exit_handler)
+
+    root.mainloop()
