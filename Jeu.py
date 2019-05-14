@@ -26,6 +26,8 @@ ancheur = 480
 
 cen = 455 # centre des carres dont on detecte (carres ou l'utilisateur doit appuyer)
 
+jeu_points=[]
+
 lignes = [[], [], [], [], []]
 dispo = [0, 0, 0, 0, 0]
 colors = ["green", "red", "yellow", "blue", "orange"]
@@ -121,6 +123,21 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
                 break
             time.sleep(0.01)
 
+def points(x):
+    dis = canvas.coords(lignes[x][0])[1] - 420
+    global score_total
+    if dis>0:
+        sur=50-dis
+        per=(sur*100)/50
+        jeu_points.append(per)
+    elif dis<0:
+        sur=50+dis
+        per=(sur*100)/50
+        jeu_points.append(per)
+    else:
+        jeu_points.append(100)
+    score_total=sum(jeu_points) / len(jeu_points)
+
 def spawnerCarres(ligne):
     #l = ligne # Activer si on reussi a faire ce systeme automatique
     l = randint(0, len(lignes) - 1)
@@ -133,6 +150,7 @@ def detruireCarre(l):
 
     coor = canvas.coords(lignes[l][0])[1] + 25 # Coordonnees du centre du carre
     if coor - cen < 50 and coor - cen > -50: # Ils sont en train de se toucher, du coup on peut le detecter comme une colision
+        points(l)
         canvas.delete(lignes[l][0])
         lignes[l].pop(0)
 
@@ -165,6 +183,7 @@ def chercherGuitarre(async_loop):
 
 def exit_handler():
     async_loop.close()
+    print("Votre précision en pourcentage est de : ", score_total, "%.")
     print ('My application is ending!')
 
 if __name__ == '__main__':
