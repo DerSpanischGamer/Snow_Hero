@@ -3,9 +3,9 @@ from tkinter import *
 # Importer Threading pour avoir un Thread qui gere la guitarre
 import threading
 # Importer serial pour pouvoir se communiquer avec la guitarre
-import serial
+#import serial
 # Importer tout ca pour pouvoir trouver le port de la guitarre
-import serial.tools.list_ports
+#import serial.tools.list_ports
 
 import asyncio
 
@@ -54,34 +54,38 @@ newtime = 0
 
 
 def keysetup_instruction():
-	print("Quel touche pour la colonne", len(touches)+1, "? : ")
-
+    if len(touches) == 5:
+        print("Les touches on étés assignées")
+    else:
+        print("Quel touche pour la colonne", len(touches)+1, "? : ")
+        print(touches)
+#lijsladkaslkdjlkj
 
 def key(event):
-	t = event.keycode
-	print(t)
-	if len(touches) < 5:
-		if t in touches:
-			print("Touche deja assignee!")
-		else: 
-			touches.append(t)
-			print(touches)
-	else:
-		l = -1
-		if t == 27:
-			global sortir
-			sortir = True
-		try:
-			l = touches.index(t)
-		except:
-			pass
-		if l != -1 and not guitarre:
-			global reset
-			reset = True
-			canvas.itemconfig(carresFin[l], fill=colors[l])
-			canvas.update()
+    t = event.keycode
+    print(t)
+    if len(touches) < 5:
+        if t in touches:
+            print("Touche deja assignee!")
+        else:
+            touches.append(t)
+            keysetup_instruction()
+    else:
+        l = -1
+        if t == 27:
+            global sortir
+            sortir = True
+        try:
+            l = touches.index(t)
+        except:
+            pass
+        if l != -1 and not guitarre:
+            global reset
+            reset = True
+            canvas.itemconfig(carresFin[l], fill=colors[l])
+            canvas.update()
 
-			detruireCarre(l)
+            detruireCarre(l)
 
 # Finalement on lance la chanson avec les carres
 
@@ -95,48 +99,51 @@ class Shape: # Celui-ci sera le responsable de creer les rectangles
         return id
 
 def bougerCarres(): # Meme fonction pour bouger et creer les carres
-    demarrer.destroy()
+    if len(touches) < 5:
+        print("Les touches n'ont pas été assignées!")
+    else:
+        demarrer.destroy()
 
-    titre.pack_forget()
-    titre.pack()
+        titre.pack_forget()
+        titre.pack()
 
-    chercher.destroy()
+        chercher.destroy()
 
-    i = 20
-    while True:
-        newtime = time.time()
-        global oldtime
-        if newtime - oldtime >= actuTemps:
-            oldtime = newtime
-            canvas.move("note", 0, 5) # On bouge les notes
-            # Regarder si l'utilsateur a raté la note pour l'effacer
-            notes = canvas.find_withtag("note")
+        i = 20
+        while True:
+            newtime = time.time()
+            global oldtime
+            if newtime - oldtime >= actuTemps:
+                oldtime = newtime
+                canvas.move("note", 0, 5) # On bouge les notes
+                # Regarder si l'utilsateur a raté la note pour l'effacer
+                notes = canvas.find_withtag("note")
 
-            for note in notes:
-                if canvas.coords(note)[1] >= 525:
-                    canvas.delete(note)
-                    for ligne in lignes:
-                            if note in ligne:
-                                ligne.remove(note)
-                                break
-            canvas.update()     # Et on actualise le canvas
+                for note in notes:
+                    if canvas.coords(note)[1] >= 525:
+                        canvas.delete(note)
+                        for ligne in lignes:
+                                if note in ligne:
+                                    ligne.remove(note)
+                                    break
+                canvas.update()     # Et on actualise le canvas
 
-            i += 1
-            if i > blockSpawn:
-                spawnerCarres(0)
-                i = 0
+                i += 1
+                if i > blockSpawn:
+                    spawnerCarres(0)
+                    i = 0
 
-            global reset
-            if reset:
-                reset = False
-                for i in range(len(carresFin)):
-                    canvas.itemconfig(carresFin[i], fill="black")
-                canvas.update()
+                global reset
+                if reset:
+                    reset = False
+                    for i in range(len(carresFin)):
+                        canvas.itemconfig(carresFin[i], fill="black")
+                    canvas.update()
 
-            global sortir
-            if sortir:
-                break
-            time.sleep(0.01)
+                global sortir
+                if sortir:
+                    break
+                time.sleep(0.01)
 
 def points(x):
     dis = canvas.coords(lignes[x][0])[1] - 420
@@ -223,13 +230,13 @@ if __name__ == '__main__':
     demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
     demarrer.pack()
     demarrer.place(x = 325, y = ancheur/2 - 12)
-    
+
     async_loop = asyncio.get_event_loop() # Boucle asyncronisee
 
     chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(async_loop))
     chercher.pack()
     chercher.place(x = 285, y = ancheur/2 + 50)
-    
+
     setup_button = Button(root, height = 10, width = 20, text = "Assigner touches", command = lambda: keysetup_instruction())
     setup_button.pack()
 
