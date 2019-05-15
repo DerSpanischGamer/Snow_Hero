@@ -11,145 +11,33 @@ import json
 import subprocess
 from PIL import Image, ImageTk
 
+class SplashScreen(Frame):
+    def __init__(self, master=None, width=0.8, height=0.6, useFactor=True):
+        Frame.__init__(self, master)
+        self.pack(side=TOP, fill=BOTH, expand=YES)
 
+        # get screen width and height
+        ws = self.master.winfo_screenwidth()
+        hs = self.master.winfo_screenheight()
+        w = (useFactor and ws*width) or width
+        h = (useFactor and ws*height) or height
+        # calculate position x, y
+        x = (ws/2) - (w/2)
+        y = (hs/2) - (h/2)
+        self.master.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
-root = Tk()
+        self.master.overrideredirect(True)
+        self.lift()
 
-# Zone des variables
-dir = "" # le directory de la chanson qui a été selectionnée
+if __name__ == '__main__':
+    root = Tk()
 
-largueur = 720
-ancheur = 480
+    sp = SplashScreen(root)
+    sp.config(bg="#3366ff")
 
-chansons = [] # une liste qui garde tous les dossiers avec des chasons dedans
+    m = Label(sp, text="This is a test of the splash screen\n\n\nThis is only a test.\nwww.sunjay-varma.com")
+    m.pack(side=TOP, expand=YES)
+    m.config(bg="red", justify=CENTER, font=("calibri", 29))
 
-volume = DoubleVar()
-
-tout = "Titre auteur description"
-
-titre = "Titre"
-auteur = "Auteur"
-description = "Description"
-image = ""
-
-# Charger la configuration
-
-with open('./config.json') as f:
-    donnees = json.load(f)
-
-    volume = donnees['volume'] # prendre le volume de la configuration de l'utilisateur
-
-# Zones des fonctions
-
-def sortir():
-    root.destroy()
-
-def key(event):
-    print("pressed", repr(event.char))
-
-def callback(event):
-    print ("clicked at", event.x, event.y)
-
-
-def actuVol(d):
-    volume = eval(d)
-    pygame.mixer.music.set_volume(volume)
-
-    with open("./config.json") as f:
-        d = json.load(f)
-        d['volume'] = volume
-
-        with open("./config.json", "w") as e:
-            json.dump(d, e)
-
-
-# Dessiner le menu principal
-
-frame = Frame(root, width = largueur, height = ancheur)
-
-Label(text = "Snow Hero", font = ("Helvetica", 40)).place(x = 240, y = 0)
-Button(text = "Sortir", command = sortir).place(x = 360, y = 450)
-
-# Dessiner une image derrière
-image = Image.open("pic.png")
-photo = ImageTk.PhotoImage(image)
-
-label = Label(image = photo)
-label.image = photo
-label.pack()
-
-# Preparer pygames pour jouer des chasons
-
-pygame.init()
-pygame.mixer.pre_init(frequency = 22050, size = -16, channels = 2, buffer = 4096)
-pygame.mixer.init()
-pygame.mixer.music.set_volume(volume)
-
-# Regarder les fichiers qui sont en ./chansons et les montrer
-
-i = 0
-for dos in os.walk(os.path.curdir + "//chansons"): # on prend une liste de tous les dossiers et sous dossiers
-
-    scrollbar = Scrollbar(root)
-    scrollbar.pack(side = RIGHT, fill = Y)
-
-    listbox = Listbox(root, yscrollcommand = scrollbar.set)
-
-    for chanson in dos[1]: # dedans l'object dos, seulement nous interesse le deuxieme element (on commence par 0), mais on ne peut pas faire une variable x qui soit egale au truc, on doit faire une etape intermediare avec la boucle for :(
-        listbox.insert(END, str(chanson))
-        chansons.append(str(chanson))
-    listbox.place(x = 50, y = 70)
-    scrollbar.config(command = listbox.yview)
-
-    def lancerChanson():
-        subprocess.call(["python3 ", "Jeu.py ", str(volume), str(dir)])
-
-        pygame.mixer.music.stop()
-
-    Button(text = "Jouer", command = lancerChanson).place(x = 80, y = 240)
-    break # break car seulement le premier element de la liste nous interesse car c'est le seul qui dis les dossiers dedans la URL choisie
-
-
-if len(chansons) != 0: # Selectioner la premiere chason
-    listbox.select_set(0)
-    dir = chansons[listbox.curselection()[0]]
-
-# Scale est le petit slider qui nous laisse choisir le volume
-scale = Scale(root, from_=0, to=1, resolution = 0.01, orient = HORIZONTAL)
-scale.set(volume)
-scale.place(x = 215, y = 248)
-scale.config(command = actuVol)
-
-# TODO: Nicoly tu fais ca, tu dois dessiner a droite une partie ou il y a toute la description de la chason, c'est moi qui va te donner tous les donnees sur la chason tqt
-# Dessiner la preselection de l'image
-
-# Configurer les binds
-
-frame.bind("<Button-1>", callback) # fait un printe d'ou on a clique
-frame.bind("<Key>", key)        # detecte la touche que l'utilisateur a appuye
-frame.pack()
-frame.focus_set()
-
-selec = ""
-while True:
-    try:
-        # Cette partie gère la chanson selectionee
-        if selec != listbox.curselection()[0]:
-            pygame.mixer.music.stop()
-            selec = listbox.curselection()[0]
-
-            pygame.mixer.music.load("./chansons/" + chansons[selec] + "/chanson.aiff")
-            pygame.mixer.music.play()
-    except:
-        pass
-    try:
-        root.update_idletasks()
-        root.update()
-    except:
-        print("Bye bye :)")
-        break
-
-root.mainloop()
-
-
-# montrer les details de la chanson
+    Button(sp, text="Press this button to kill the program", bg='red', command=root.destroy).pack(side=BOTTOM, fill=X)
+    root.mainloop()
