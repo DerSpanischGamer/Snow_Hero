@@ -246,22 +246,4 @@ atexit.register(exit_handler)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 root.mainloop()
