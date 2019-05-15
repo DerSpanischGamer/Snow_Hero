@@ -17,7 +17,9 @@ import time
 from random import randint
 
 # La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
-def sortir():
+def out():
+    global arreterTiming
+    arreterTiming = True
     root.destroy()
 
 # Espace variables
@@ -26,13 +28,21 @@ ancheur = 480
 
 cen = 455 # centre des carres dont on detecte (carres ou l'utilisateur doit appuyer)
 
-jeu_points=[]
+score_total = 0
+jeu_points = []
+
+arreterTiming = False
+timer = 0 # Conte les secondes depuis le debut
 
 lignes = [[], [], [], [], []]
 dispo = [0, 0, 0, 0, 0]
 colors = ["green", "red", "yellow", "blue", "orange"]
 
-touches = [90, 88, 66, 78, 77] # z, x, b, n, m
+#touches = [90, 88, 66, 78, 77] # z, x, b, n, m Touches pour Windows
+touches = [393338, 458872, 720994, 2949230, 3014765] # Touches pour Mac
+
+#esc = 27 # Windows
+esc = 3473435 # Mac
 
 carresFin = []
 
@@ -44,6 +54,7 @@ sortir = False # True s'il faut sortir du loop
 
 actuTemps = 0.05
 blockSpawn = 15
+carresTime = 0 # Le nombre de actulisation qu'il y a eu depuis le dernier carre
 
 oldtime = - actuTemps - 20 # Utilise pour bouger des blocs
 newtime = 0
@@ -51,9 +62,11 @@ newtime = 0
 # Gerer les cles
 def key(event):
     t = event.keycode
-    if t == 27:
+    if t == esc:
         global sortir
         sortir = True
+
+        out()
     l = -1
     try:
         l = touches.index(t)
@@ -63,7 +76,7 @@ def key(event):
         global reset
         reset = True
 
-        canvas.itemconfig(carresFin[l], fill=colors[l])
+        canvas.itemconfig(carresFin[l], fill = colors[l])
         canvas.update()
 
         detruireCarre(l)
@@ -79,7 +92,7 @@ class Shape: # Celui-ci sera le responsable de creer les rectangles
         id = canvas.create_rectangle(self.coords, tag="note", fill = color)
         return id
 
-def bougerCarres(): # Meme fonction pour bouger et creer les carres
+def bougerCarres(loop): # Meme fonction pour bouger et creer les carres
     demarrer.destroy()
 
     titre.pack_forget()
@@ -87,7 +100,9 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
 
     chercher.destroy()
 
-    i = 20
+    threading.Thread(target=timing_thread, args=(loop,)).start()
+
+    carresTime = 20
     while True:
         newtime = time.time()
         global oldtime
@@ -106,10 +121,10 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
                                 break
             canvas.update()     # Et on actualise le canvas
 
-            i += 1
-            if i > blockSpawn:
+            carresTime += 1
+            if carresTime > blockSpawn:
                 spawnerCarres(0)
-                i = 0
+                carresTime = 0
 
             global reset
             if reset:
@@ -136,7 +151,7 @@ def points(x):
         jeu_points.append(per)
     else:
         jeu_points.append(100)
-    score_total=sum(jeu_points) / len(jeu_points)
+    score_total = sum(jeu_points) / len(jeu_points)
 
 def spawnerCarres(ligne):
     #l = ligne # Activer si on reussi a faire ce systeme automatique
@@ -181,6 +196,38 @@ def chercherGuitarre(async_loop):
 
             threading.Thread(target=_asyncio_thread, args=(async_loop,)).start()
 
+def timing():
+    global arreterTiming
+    while not arreterTiming:
+        global timer
+        timer += 1
+        print(timer)
+        time.sleep(1)
+        # actualiser le conteur
+    print("On recommence?")
+
+def timing_thread(l):
+    l.run_until_complete(timing())
+
+def recommencer(loop):
+    # Reinitialiser les points
+    jeu_points = []
+    score_total = 0
+
+    for lin in lignes:
+        for i in lin:
+            canvas.delete(i)
+
+    for lin in lignes:
+        for i in lin: lin.remove(i)
+
+    carresTime = 0
+
+    global arreterTiming
+    arreterTiming = True
+
+    threading.Thread(target=timing_thread, args=(loop,)).start()
+
 def exit_handler():
     async_loop.close()
     print("Votre précision en pourcentage est de : ", score_total, "%.")
@@ -205,16 +252,20 @@ if __name__ == '__main__':
     titre.pack()
     titre.place(x = 194, y = 0)
 
-    demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
+    async_loop = asyncio.get_event_loop()   # Boucle asyncronisee
+    conteur_loop = asyncio.get_event_loop() # Boucle pour gerer le passage du temp
+
+    demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres(conteur_loop))
     demarrer.pack()
     demarrer.place(x = 325, y = ancheur/2 - 12)
-
-    async_loop = asyncio.get_event_loop() # Boucle asyncronisee
 
     chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(async_loop))
     chercher.pack()
     chercher.place(x = 285, y = ancheur/2 + 50)
 
+    recom = Button(root, height = 2, width = 9, text = "Recommencer", command = lambda: recommencer(conteur_loop))
+    recom.pack()
+    recom.place(x = 285, y = ancheur / 2 - 25)
 
     # Ici on dessine la guitarre, le fond et les points
     canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
