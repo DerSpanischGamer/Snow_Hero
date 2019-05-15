@@ -1,16 +1,5 @@
 # Importer tkinter pour pouvoir faire une fenetre
 from tkinter import *
-
-# Import Timer pour pouvoir appeler des fonctions chaque x secondes
-from threading import Timer
-# Importer os pour pouvoir acceder aux dossiers
-import os
-# Importer json pour pouvoir ouvrir des fichiers jsons
-import json
-from PIL import Image, ImageTk
-from tkinter import ttk
-
-
 # Importer Threading pour avoir un Thread qui gere la guitarre
 import threading
 # Importer serial pour pouvoir se communiquer avec la guitarre
@@ -27,12 +16,8 @@ import sys
 import time
 from random import randint
 
-
-
 # La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
-def out():
-    global arreterTiming
-    arreterTiming = True
+def sortir():
     root.destroy()
 
 # Espace variables
@@ -42,46 +27,63 @@ ancheur = 480
 cen = 455 # centre des carres dont on detecte (carres ou l'utilisateur doit appuyer)
 
 score_total = 0
-jeu_points = []
+jeu_points=[]
 
-arreterTiming = False
-timer = 0 # Conte les secondes depuis le debut
+lignes = [[], [], [], [], []]
+dispo = [0, 0, 0, 0, 0]
+colors = ["green", "red", "yellow", "blue", "orange"]
 
-esc = 27
+touches = [] # z, x, b, n, m
 
 carresFin = []
+
+port = ""# Le port auquel la guitarre est connectee
+guitarre = False # Par defaut il n'y a pas de guitarre
 
 reset = False # S'il faut reseter les carres (animation)
 sortir = False # True s'il faut sortir du loop
 
 actuTemps = 0.05
 blockSpawn = 15
-carresTime = 0 # Le nombre de actulisation qu'il y a eu depuis le dernier carre
 
 oldtime = - actuTemps - 20 # Utilise pour bouger des blocs
 newtime = 0
 
+
 # Gerer les cles
+
+
+def keysetup_instruction():
+	print("Quel touche pour la colonne", len(touches)+1, "? : ")
+
+
 def key(event):
-    t = event.keycode
-    if t == esc:
-        global sortir
-        sortir = True
+	t = event.keycode
+	print(t)
+	if len(touches) < 5:
+		if t in touches:
+			print("Touche deja assignee!")
+		else: 
+			touches.append(t)
+			print(touches)
+	else:
+		l = -1
+		if t == 27:
+			global sortir
+			sortir = True
+		try:
+			l = touches.index(t)
+		except:
+			pass
+		if l != -1 and not guitarre:
+			global reset
+			reset = True
+			canvas.itemconfig(carresFin[l], fill=colors[l])
+			canvas.update()
 
-        out()
-    l = -1
-    try:
-        l = touches.index(t)
-    except:
-        pass
-    if l != -1 and not guitarre:
-        global reset
-        reset = True
+			detruireCarre(l)
 
-        canvas.itemconfig(carresFin[l], fill = colors[l])
-        canvas.update()
-
-        detruireCarre(l)
+# Finalement on lance la chanson avec les carres
 
 class Shape: # Celui-ci sera le responsable de creer les rectangles
     def __init__(self, id, coords, canvas):
@@ -92,7 +94,7 @@ class Shape: # Celui-ci sera le responsable de creer les rectangles
         id = canvas.create_rectangle(self.coords, tag="note", fill = color)
         return id
 
-def bougerCarres(loop): # Meme fonction pour bouger et creer les carres
+def bougerCarres(): # Meme fonction pour bouger et creer les carres
     demarrer.destroy()
 
     titre.pack_forget()
@@ -100,9 +102,7 @@ def bougerCarres(loop): # Meme fonction pour bouger et creer les carres
 
     chercher.destroy()
 
-    threading.Thread(target=timing_thread, args=(loop,)).start()
-
-    carresTime = 20
+    i = 20
     while True:
         newtime = time.time()
         global oldtime
@@ -121,10 +121,10 @@ def bougerCarres(loop): # Meme fonction pour bouger et creer les carres
                                 break
             canvas.update()     # Et on actualise le canvas
 
-            carresTime += 1
-            if carresTime > blockSpawn:
+            i += 1
+            if i > blockSpawn:
                 spawnerCarres(0)
-                carresTime = 0
+                i = 0
 
             global reset
             if reset:
@@ -151,7 +151,7 @@ def points(x):
         jeu_points.append(per)
     else:
         jeu_points.append(100)
-    score_total = sum(jeu_points) / len(jeu_points)
+    score_total=sum(jeu_points) / len(jeu_points)
 
 def spawnerCarres(ligne):
     #l = ligne # Activer si on reussi a faire ce systeme automatique
@@ -196,38 +196,6 @@ def chercherGuitarre(async_loop):
 
             threading.Thread(target=_asyncio_thread, args=(async_loop,)).start()
 
-def timing():
-    global arreterTiming
-    while not arreterTiming:
-        global timer
-        timer += 1
-        print(timer)
-        time.sleep(1)
-        # actualiser le conteur
-    print("On recommence?")
-
-def timing_thread(l):
-    l.run_until_complete(timing())
-
-def recommencer(loop):
-    # Reinitialiser les points
-    jeu_points = []
-    score_total = 0
-
-    for lin in lignes:
-        for i in lin:
-            canvas.delete(i)
-
-    for lin in lignes:
-        for i in lin: lin.remove(i)
-
-    carresTime = 0
-
-    global arreterTiming
-    arreterTiming = True
-
-    threading.Thread(target=timing_thread, args=(loop,)).start()
-
 def exit_handler():
     async_loop.close()
     print("Votre précision en pourcentage est de : ", score_total, "%.")
@@ -247,42 +215,23 @@ if __name__ == '__main__':
     canvas = Canvas(root, height = ancheur, width = largueur)
     canvas.pack()
 
-    # load the .gif image file
-    gif1 = PhotoImage(file='mus.png')
-    # put gif image on canvas
-    # pic's upper left corner (NW) on the canvas is at x=50 y=10
-    canvas.create_image(0,0, image=gif1, anchor=NW)
-
-    #creatre score
-
-    score = Label(root, text="Your score", bg="red")
-    score.pack()
-    score.place(x=20 ,y=150)
-    temps = Label(root, text="Temps restant", bg="red")
-    temps.pack()
-    temps.place(x=20,y=180)
-
-
-
     # Dessiner l'ecran
     titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
     titre.pack()
     titre.place(x = 194, y = 0)
 
-    async_loop = asyncio.get_event_loop()   # Boucle asyncronisee
-    conteur_loop = asyncio.get_event_loop() # Boucle pour gerer le passage du temp
-
-    demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres(conteur_loop))
+    demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
     demarrer.pack()
     demarrer.place(x = 325, y = ancheur/2 - 12)
+    
+    async_loop = asyncio.get_event_loop() # Boucle asyncronisee
 
     chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(async_loop))
     chercher.pack()
     chercher.place(x = 285, y = ancheur/2 + 50)
-
-    recom = Button(root, height = 2, width = 9, text = "Recommencer", command = lambda: recommencer(conteur_loop))
-    recom.pack()
-    recom.place(x = 285, y = ancheur / 2 - 25)
+    
+    setup_button = Button(root, height = 10, width = 20, text = "Assigner touches", command = lambda: keysetup_instruction())
+    setup_button.pack()
 
     # Ici on dessine la guitarre, le fond et les points
     canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
