@@ -25,6 +25,11 @@ import sys
 import time
 from random import randint
 
+from time import time, sleep
+from random import choice, uniform, randint
+from math import sin, cos, radians
+
+
 # La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
 def sortir():
     root.destroy()
@@ -255,4 +260,8 @@ atexit.register(exit_handler)
 
 
 
-mainloop()
+
+
+
+
+root.mainloop()
