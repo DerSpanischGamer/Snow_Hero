@@ -1,6 +1,6 @@
 # Importer tkinter pour pouvoir faire une fenetre
 from tkinter import *
-<<<<<<< HEAD
+
 # Import Timer pour pouvoir appeler des fonctions chaque x secondes
 from threading import Timer
 # Importer os pour pouvoir acceder aux dossiers
@@ -10,8 +10,7 @@ import json
 from PIL import Image, ImageTk
 from tkinter import ttk
 
-=======
->>>>>>> 83742d6a7945a36eacf01f01bb1eb31f8bfb0856
+
 # Importer Threading pour avoir un Thread qui gere la guitarre
 import threading
 # Importer serial pour pouvoir se communiquer avec la guitarre
@@ -28,6 +27,8 @@ import sys
 import time
 from random import randint
 
+
+
 # La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
 def sortir():
     root.destroy()
@@ -40,40 +41,6 @@ cen = 455 # centre des carres dont on detecte (carres ou l'utilisateur doit appu
 
 
 carresFin = []
-
-# load the .gif image file
-gif1 = PhotoImage(file='mus.png')
-# put gif image on canvas
-# pic's upper left corner (NW) on the canvas is at x=50 y=10
-canvas.create_image(0,0, image=gif1, anchor=NW)
-
-#creatre score
-
-score = Label(root, text="Your score", bg="red")
-score.pack()
-score.place(x=20 ,y=150)
-temps = Label(root, text="Temps restant", bg="red")
-temps.pack()
-temps.place(x=20,y=180)
-
-# Dessiner l'ecran
-titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
-titre.pack()
-titre.place(x = 194, y = 0)
-
-demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
-demarrer.pack()
-demarrer.place(x = 325, y = ancheur/2 - 12)
-
-async_loop = asyncio.get_event_loop() # Boucle asyncronisee
-
-chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(async_loop))
-chercher.pack()
-chercher.place(x = 285, y = ancheur/2 + 50)
-
-
-    # Ici on dessine la guitarre, le fond et les points
-canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
 
 reset = False # S'il faut reseter les carres (animation)
 sortir = False # True s'il faut sortir du loop
@@ -103,9 +70,6 @@ def key(event):
         canvas.update()
 
         detruireCarre(l)
-
-carresFin = [b0, b1, b2, b3, b4]
-atexit.register(exit_handler)
 
 class Shape: # Celui-ci sera le responsable de creer les rectangles
     def __init__(self, id, coords, canvas):
@@ -236,6 +200,23 @@ if __name__ == '__main__':
 
     canvas = Canvas(root, height = ancheur, width = largueur)
     canvas.pack()
+
+    # load the .gif image file
+    gif1 = PhotoImage(file='mus.png')
+    # put gif image on canvas
+    # pic's upper left corner (NW) on the canvas is at x=50 y=10
+    canvas.create_image(0,0, image=gif1, anchor=NW)
+
+    #creatre score
+
+    score = Label(root, text="Your score", bg="red")
+    score.pack()
+    score.place(x=20 ,y=150)
+    temps = Label(root, text="Temps restant", bg="red")
+    temps.pack()
+    temps.place(x=20,y=180)
+
+
 
     # Dessiner l'ecran
     titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
