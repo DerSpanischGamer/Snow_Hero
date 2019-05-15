@@ -3,9 +3,9 @@ from tkinter import *
 # Importer Threading pour avoir un Thread qui gere la guitarre
 import threading
 # Importer serial pour pouvoir se communiquer avec la guitarre
-#import serial
+import serial
 # Importer tout ca pour pouvoir trouver le port de la guitarre
-#import serial.tools.list_ports
+import serial.tools.list_ports
 
 import asyncio
 
@@ -57,13 +57,10 @@ def keysetup_instruction():
     if len(touches) == 5:
         print("Les touches on étés assignées")
     else:
-        print("Quel touche pour la colonne", len(touches)+1, "? : ")
-        print(touches)
-#lijsladkaslkdjlkj
+        print("Quel touche pour la colonne", len(touches) + 1, "? : ")
 
 def key(event):
     t = event.keycode
-    print(t)
     if len(touches) < 5:
         if t in touches:
             print("Touche deja assignee!")
@@ -222,6 +219,22 @@ if __name__ == '__main__':
     canvas = Canvas(root, height = ancheur, width = largueur)
     canvas.pack()
 
+    # load the .gif image file
+    gif1 = PhotoImage(file='mus.png')
+    # put gif image on canvas
+    # pic's upper left corner (NW) on the canvas is at x=50 y=10
+    canvas.create_image(0,0, image=gif1, anchor=NW)
+
+    # Creatre score
+
+    score = Label(root, text="Your score", bg="red")
+    score.pack()
+    score.place(x=20 ,y=150)
+
+    temps = Label(root, text="Temps restant", bg="red")
+    temps.pack()
+    temps.place(x=20,y=180)
+
     # Dessiner l'ecran
     titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
     titre.pack()
@@ -229,16 +242,17 @@ if __name__ == '__main__':
 
     demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
     demarrer.pack()
-    demarrer.place(x = 325, y = ancheur/2 - 12)
+    demarrer.place(x = 325, y = ancheur/2 - 50)
 
     async_loop = asyncio.get_event_loop() # Boucle asyncronisee
 
     chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(async_loop))
     chercher.pack()
-    chercher.place(x = 285, y = ancheur/2 + 50)
+    chercher.place(x = 285, y = ancheur/2 + 12)
 
-    setup_button = Button(root, height = 10, width = 20, text = "Assigner touches", command = lambda: keysetup_instruction())
+    setup_button = Button(root, height = 2, width = 20, text = "Assigner touches", command = lambda: keysetup_instruction())
     setup_button.pack()
+    setup_button.place(x = 285, y = ancheur/2 + 60)
 
     # Ici on dessine la guitarre, le fond et les points
     canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
