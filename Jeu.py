@@ -47,6 +47,8 @@ jeu_points = []
 arreterTiming = False
 timer = 0 # Conte les secondes depuis le debut
 
+esc = 27
+
 carresFin = []
 
 reset = False # S'il faut reseter les carres (animation)
