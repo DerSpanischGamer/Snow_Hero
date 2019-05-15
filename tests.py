@@ -1,18 +1,15 @@
-from tkinter import *
+import json
 
-from queue import Queue
-import time
+from bottle import run, post, request, response
 
-root = Tk()
-largueur = 720
-ancheur = 480
-frame = Frame(root, width = largueur, height = ancheur)
+import subprocess
 
-def key(e):
-    print("pressed", e.char)
+@post('/process')
+def my_process():
+    print("msg?")
+    return 'All done'
 
-frame.bind("<KeyPress>", key)        # detecte la touche que l'utilisateur a appuye
-frame.pack()
 
-frame.focus_set()
-root.mainloop()
+subprocess.Popen("python Arduino.py ")
+print("slkbn")
+run(host='localhost', port=8080, debug=True)
