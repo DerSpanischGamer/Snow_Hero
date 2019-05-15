@@ -1,5 +1,6 @@
 # Importer tkinter pour pouvoir faire une fenetre
 from tkinter import *
+<<<<<<< HEAD
 # Import Timer pour pouvoir appeler des fonctions chaque x secondes
 from threading import Timer
 # Importer os pour pouvoir acceder aux dossiers
@@ -9,6 +10,8 @@ import json
 from PIL import Image, ImageTk
 from tkinter import ttk
 
+=======
+>>>>>>> 83742d6a7945a36eacf01f01bb1eb31f8bfb0856
 # Importer Threading pour avoir un Thread qui gere la guitarre
 import threading
 # Importer serial pour pouvoir se communiquer avec la guitarre
@@ -25,11 +28,6 @@ import sys
 import time
 from random import randint
 
-from time import time, sleep
-from random import choice, uniform, randint
-from math import sin, cos, radians
-
-
 # La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
 def sortir():
     root.destroy()
@@ -40,16 +38,42 @@ ancheur = 480
 
 cen = 455 # centre des carres dont on detecte (carres ou l'utilisateur doit appuyer)
 
-lignes = [[], [], [], [], []]
-dispo = [0, 0, 0, 0, 0]
-colors = ["green", "red", "yellow", "blue", "orange"]
-
-touches = [90, 88, 66, 78, 77] # z, x, b, n, m
 
 carresFin = []
 
-port = ""# Le port auquel la guitarre est connectee
-guitarre = False # Par defaut il n'y a pas de guitarre
+# load the .gif image file
+gif1 = PhotoImage(file='mus.png')
+# put gif image on canvas
+# pic's upper left corner (NW) on the canvas is at x=50 y=10
+canvas.create_image(0,0, image=gif1, anchor=NW)
+
+#creatre score
+
+score = Label(root, text="Your score", bg="red")
+score.pack()
+score.place(x=20 ,y=150)
+temps = Label(root, text="Temps restant", bg="red")
+temps.pack()
+temps.place(x=20,y=180)
+
+# Dessiner l'ecran
+titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
+titre.pack()
+titre.place(x = 194, y = 0)
+
+demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
+demarrer.pack()
+demarrer.place(x = 325, y = ancheur/2 - 12)
+
+async_loop = asyncio.get_event_loop() # Boucle asyncronisee
+
+chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(async_loop))
+chercher.pack()
+chercher.place(x = 285, y = ancheur/2 + 50)
+
+
+    # Ici on dessine la guitarre, le fond et les points
+canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
 
 reset = False # S'il faut reseter les carres (animation)
 sortir = False # True s'il faut sortir du loop
@@ -80,7 +104,8 @@ def key(event):
 
         detruireCarre(l)
 
-# Finalement on lance la chanson avec les carres
+carresFin = [b0, b1, b2, b3, b4]
+atexit.register(exit_handler)
 
 class Shape: # Celui-ci sera le responsable de creer les rectangles
     def __init__(self, id, coords, canvas):
@@ -135,6 +160,21 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
                 break
             time.sleep(0.01)
 
+def points(x):
+    dis = canvas.coords(lignes[x][0])[1] - 420
+    global score_total
+    if dis>0:
+        sur=50-dis
+        per=(sur*100)/50
+        jeu_points.append(per)
+    elif dis<0:
+        sur=50+dis
+        per=(sur*100)/50
+        jeu_points.append(per)
+    else:
+        jeu_points.append(100)
+    score_total=sum(jeu_points) / len(jeu_points)
+
 def spawnerCarres(ligne):
     #l = ligne # Activer si on reussi a faire ce systeme automatique
     l = randint(0, len(lignes) - 1)
@@ -147,6 +187,7 @@ def detruireCarre(l):
 
     coor = canvas.coords(lignes[l][0])[1] + 25 # Coordonnees du centre du carre
     if coor - cen < 50 and coor - cen > -50: # Ils sont en train de se toucher, du coup on peut le detecter comme une colision
+        points(l)
         canvas.delete(lignes[l][0])
         lignes[l].pop(0)
 
@@ -179,6 +220,7 @@ def chercherGuitarre(async_loop):
 
 def exit_handler():
     async_loop.close()
+    print("Votre précision en pourcentage est de : ", score_total, "%.")
     print ('My application is ending!')
 
 if __name__ == '__main__':
@@ -192,58 +234,41 @@ if __name__ == '__main__':
     frame.focus_set()
     frame.bind("<Key>", key) # ajotuer la detection des touches
 
-canvas = Canvas(root, height = ancheur, width = largueur)
-canvas.pack()
+    canvas = Canvas(root, height = ancheur, width = largueur)
+    canvas.pack()
 
-# load the .gif image file
-gif1 = PhotoImage(file='mus.png')
-# put gif image on canvas
-# pic's upper left corner (NW) on the canvas is at x=50 y=10
-canvas.create_image(0,0, image=gif1, anchor=NW)
+    # Dessiner l'ecran
+    titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
+    titre.pack()
+    titre.place(x = 194, y = 0)
 
-#creatre score
+    demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
+    demarrer.pack()
+    demarrer.place(x = 325, y = ancheur/2 - 12)
 
-score = Label(root, text="Your score", bg="red")
-score.pack()
-score.place(x=20 ,y=150)
-temps = Label(root, text="Temps restant", bg="red")
-temps.pack()
-temps.place(x=20,y=180)
+    async_loop = asyncio.get_event_loop() # Boucle asyncronisee
 
-# Dessiner l'ecran
-titre = Label(root, text = "Snow Hero", font=("Helvetica", 50))
-titre.pack()
-titre.place(x = 194, y = 0)
-
-demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
-demarrer.pack()
-demarrer.place(x = 325, y = ancheur/2 - 12)
-
-async_loop = asyncio.get_event_loop() # Boucle asyncronisee
-
-chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(async_loop))
-chercher.pack()
-chercher.place(x = 285, y = ancheur/2 + 50)
+    chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(async_loop))
+    chercher.pack()
+    chercher.place(x = 285, y = ancheur/2 + 50)
 
 
     # Ici on dessine la guitarre, le fond et les points
-canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
+    canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
 
-canvas.create_line(255, 0, 255, 480, fill = "white")
-canvas.create_line(325, 0, 325, 480, fill = "white")
-canvas.create_line(395, 0, 395, 480, fill = "white")
-canvas.create_line(465, 0, 465, 480, fill = "white")
+    canvas.create_line(255, 0, 255, 480, fill = "white")
+    canvas.create_line(325, 0, 325, 480, fill = "white")
+    canvas.create_line(395, 0, 395, 480, fill = "white")
+    canvas.create_line(465, 0, 465, 480, fill = "white")
 
-b0 = canvas.create_rectangle(195, 420, 245, 470, outline = "green")
-b1 = canvas.create_rectangle(265, 420, 315, 470, outline = "red")
-b2 = canvas.create_rectangle(335, 420, 385, 470, outline = "yellow")
-b3 = canvas.create_rectangle(405, 420, 455, 470, outline = "blue")
-b4 = canvas.create_rectangle(475, 420, 525, 470, outline = "orange")
+    b0 = canvas.create_rectangle(195, 420, 245, 470, outline = "green")
+    b1 = canvas.create_rectangle(265, 420, 315, 470, outline = "red")
+    b2 = canvas.create_rectangle(335, 420, 385, 470, outline = "yellow")
+    b3 = canvas.create_rectangle(405, 420, 455, 470, outline = "blue")
+    b4 = canvas.create_rectangle(475, 420, 525, 470, outline = "orange")
 
-carresFin = [b0, b1, b2, b3, b4]
-atexit.register(exit_handler)
+    carresFin = [b0, b1, b2, b3, b4]
 
+    atexit.register(exit_handler)
 
-
-
-root.mainloop()
+    root.mainloop()

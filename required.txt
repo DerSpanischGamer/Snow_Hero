@@ -1,5 +1,9 @@
 Les librairies necessaires pour faire fonctionner sont:
   - Tkinter
   - pygame
+<<<<<<< HEAD
   - serial
+=======
+  - pyserial (import serial)
+>>>>>>> 83742d6a7945a36eacf01f01bb1eb31f8bfb0856
   - asyncio
