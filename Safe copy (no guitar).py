@@ -17,47 +17,48 @@ import time
 # Pour faire l'apparition des carres dans les colognes aleatoires
 from random import randint
 
+# La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
+def out():
+    root.destroy()
+
 # Espace variables
-largueur = 720 # largueur fenetre
-ancheur = 480 # ancheur fenetre
+largueur = 720
+ancheur = 480
 
 cen = 455 # centre des carres dont on detecte (carres ou l'utilisateur doit appuyer)
 
-temprest = 30 # Temps restant
+temprest = 30
 
 score_total = 0
 jeu_points = []
 
-lignes = [[], [], [], [], []] # Blocs par ligne
-colors = ["green", "red", "yellow", "blue", "orange"] # Couleur de chaque ligne
+lignes = [[], [], [], [], []]
+dispo = [0, 0, 0, 0, 0]
+colors = ["green", "red", "yellow", "blue", "orange"]
 
-touches = [] # Touches (rempli au debut)
+touches = [] # z, x, b, n, m
 
 carresFin = []
 
 port = ""# Le port auquel la guitarre est connectee
 guitarre = False # Par defaut il n'y a pas de guitarre
 
-loop = asyncio.get_event_loop() # Boucle pour gerer la guitarre
-ecouter_t = None # Task pour la fonction ecouter
+loop = asyncio.get_event_loop()
+ecouter_t = None
 
 reset = False # S'il faut reseter les carres (animation)
 sortir = False # True s'il faut sortir du loop
 
-actuTemps = 0.05 # Interval de temps de chaque cycle
-blockSpawn = 15 # Nombre de cycles qui doivent passer depuis le dernier bloc apparu pour faire apparaitre un autre
-actuTimer = 0 # Nombre de cycles passes depuis la derniere mise a jour du conteur en arriere
+actuTemps = 0.05
+blockSpawn = 15
+actuTimer = 0
 
 oldtime = - actuTemps - 20 # Utilise pour bouger des blocs
 newtime = 0
 
-sor = None # Bouton sortir
+sor = None
+# Gerer les cles
 
-# La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
-def out():
-    root.destroy()
-    loop.stop()
-    loop.close()
 
 def keysetup_instruction():
     if len(touches) == 5:
@@ -130,6 +131,7 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
     if not guitarre and len(touches) < 5:
         print("Les touches n'ont pas été assignées!")
     else:
+        print("yay")
         # Effacer tous les boutons
         global sor
         try: sor.destroy()
@@ -238,7 +240,7 @@ async def ecouter():
         global sortir
         if sortir:
             break
-    out()
+    root.quit()
 
 def _asyncio_thread(async_loop):
     async_loop.run_until_complete(ecouter())
