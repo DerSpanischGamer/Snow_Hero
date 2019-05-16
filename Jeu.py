@@ -6,14 +6,15 @@ import threading
 import serial
 # Importer tout ca pour pouvoir trouver le port de la guitarre
 import serial.tools.list_ports
-
+# Importer asyncio pour faire des fonctions asynchrones
 import asyncio
-
+# Importer atexit pour pouvoir faire des choses quand le programme se ferme
 import atexit
-
+# Pas necessaire en theorie
 import sys
-
+# Time pour pouvoir avoir un rythme stable
 import time
+# Pour faire l'apparition des carres dans les colognes aleatoires
 from random import randint
 
 # La fonction sortir est tout au debut pour qu'elle soit la premiere a etre chargee
@@ -29,7 +30,7 @@ cen = 455 # centre des carres dont on detecte (carres ou l'utilisateur doit appu
 temprest = 30
 
 score_total = 0
-jeu_points=[]
+jeu_points = []
 
 lignes = [[], [], [], [], []]
 dispo = [0, 0, 0, 0, 0]
@@ -55,20 +56,19 @@ actuTimer = 0
 oldtime = - actuTemps - 20 # Utilise pour bouger des blocs
 newtime = 0
 
-
+sor = None
 # Gerer les cles
 
 
 def keysetup_instruction():
     if len(touches) == 5:
+        setup_button.destroy()
         print("Les touches on étés assignées")
     else:
         print("Quel touche pour la colonne", len(touches)+1, "? : ")
-        print(touches)
 
 def key(event):
     t = event.keycode
-    print(t)
     if not guitarre and len(touches) < 5:
         if t in touches:
             print("Touche deja assignee!")
@@ -103,16 +103,51 @@ class Shape: # Celui-ci sera le responsable de creer les rectangles
         id = canvas.create_rectangle(self.coords, tag="note", fill = color)
         return id
 
+def recommencer():
+    global score_total
+    global jeu_points
+    global sco
+    score_total = 0
+    jeu_points = []
+    sco.set(str(round(score_total, 4)) + "%")
+
+    for lin in lignes:
+        for i in lin:
+            canvas.delete(i)
+
+    for lin in lignes:
+        for i in lin:
+            lin.remove(i)
+
+    global sortir
+    sortir = False
+
+    i = 0
+
+    canvas.update()
+    bougerCarres()
+
 def bougerCarres(): # Meme fonction pour bouger et creer les carres
     if not guitarre and len(touches) < 5:
         print("Les touches n'ont pas été assignées!")
     else:
+        print("yay")
+        # Effacer tous les boutons
+        global sor
+        try: sor.destroy()
+        except: pass
+
+        global demarrer
         demarrer.destroy()
 
         titre.pack_forget()
         titre.pack()
 
         chercher.destroy()
+
+        global temprest
+        temprest = 30
+        temp.set(temprest)
 
         i = 20
         while True:
@@ -147,10 +182,9 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
                 actuTimer += 1
                 if actuTimer > 20:
                     actuTimer = 0
-                    global temprest
                     temprest -= 1
-                    global temp
                     temp.set(temprest)
+                if temprest == 0: break
 
                 sco.set(str(round(score_total, 4)) + "%")
 
@@ -159,7 +193,13 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
                     break
                 canvas.update()
                 time.sleep(0.01)
-        out()
+        sor = Button(root, height = 2, width = 9, text = "Sortir", command = lambda: out())
+        sor.pack()
+        sor.place(x = 305, y = ancheur/2  + 12)
+
+        demarrer = Button(root, height = 2, width = 12, text = "Recommencer", command = lambda: recommencer())
+        demarrer.pack()
+        demarrer.place(x = 305, y = ancheur/2 - 30)
 
 def points(x):
     dis = canvas.coords(lignes[x][0])[1] - 420
@@ -216,6 +256,7 @@ def chercherGuitarre(async_loop):
 
             global chercher
             chercher.destroy()
+            setup_button.destroy()
 
             threading.Thread(target=_asyncio_thread, args=(async_loop,)).start()
 
@@ -263,14 +304,15 @@ if __name__ == '__main__':
 
     demarrer = Button(root, height = 2, width = 9, text = "Commencer", command = lambda: bougerCarres())
     demarrer.pack()
-    demarrer.place(x = 325, y = ancheur/2 - 12)
+    demarrer.place(x = 325, y = ancheur/2 - 20)
 
     chercher = Button(root, height = 2, width = 20, text = "Chercher guitarre", command = lambda: chercherGuitarre(loop))
     chercher.pack()
-    chercher.place(x = 285, y = ancheur/2 + 50)
+    chercher.place(x = 285, y = ancheur/2 + 25)
 
-    setup_button = Button(root, height = 10, width = 20, text = "Assigner touches", command = lambda: keysetup_instruction())
+    setup_button = Button(root, height = 2, width = 20, text = "Assigner touches", command = lambda: keysetup_instruction())
     setup_button.pack()
+    setup_button.place(x = 285, y = ancheur/2 + 70)
 
     # Ici on dessine la guitarre, le fond et les points
     canvas.create_rectangle(185, 0, 535, 480, fill = "black", outline = "white") # Guitarre
