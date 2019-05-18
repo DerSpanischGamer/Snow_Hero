@@ -3,9 +3,9 @@ from tkinter import *
 # Importer Threading pour avoir un Thread qui gere la guitarre
 import threading
 # Importer serial pour pouvoir se communiquer avec la guitarre
-#import serial
+import serial
 # Importer tout ca pour pouvoir trouver le port de la guitarre
-#import serial.tools.list_ports
+import serial.tools.list_ports
 # Importer asyncio pour faire des fonctions asynchrones
 import asyncio
 # Importer atexit pour pouvoir faire des choses quand le programme se ferme
