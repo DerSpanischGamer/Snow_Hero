@@ -3,9 +3,9 @@ from tkinter import *
 # Importer Threading pour avoir un Thread qui gere la guitarre
 import threading
 # Importer serial pour pouvoir se communiquer avec la guitarre
-import serial
+#import serial
 # Importer tout ca pour pouvoir trouver le port de la guitarre
-import serial.tools.list_ports
+#import serial.tools.list_ports
 # Importer asyncio pour faire des fonctions asynchrones
 import asyncio
 # Importer atexit pour pouvoir faire des choses quand le programme se ferme
@@ -25,8 +25,8 @@ cen = 455 # centre des carres dont on detecte (carres ou l'utilisateur doit appu
 
 temprest = 30 # Temps restant
 
-score_total = 0
-jeu_points = []
+score_total = 0 #Score total en pourcentage
+jeu_points = [] #Pourcentage de precision pour chaque carre detruit
 
 lignes = [[], [], [], [], []] # Blocs par ligne
 colors = ["green", "red", "yellow", "blue", "orange"] # Couleur de chaque ligne
@@ -60,6 +60,7 @@ def out():
     loop.close()
 
 def keysetup_instruction():
+    """ Instruction pour assigner les touches via la console """
     if len(touches) == 5:
         setup_button.destroy()
         print("Les touches on étés assignées")
@@ -67,13 +68,15 @@ def keysetup_instruction():
         print("Quel touche pour la colonne", len(touches)+1, "? : ")
 
 def key(event):
+    """ En entree prent une touche, la transforme en son id.
+    Sert pour l'assignation des touches ainsi que pour detruire ou pas les carres. """
     t = event.keycode
-    if not guitarre and len(touches) < 5:
+    if not guitarre and len(touches) < 5: #Verifie si la touche a ete input pour etre assignee
         if t in touches:
             print("Touche deja assignee!")
         else:
-            touches.append(t)
-            keysetup_instruction()
+            touches.append(t) #La touche est assignee
+            keysetup_instruction() #Instruction pour prochaine touche (colonne)
     else:
         l = -1
         if t == 27:
@@ -90,8 +93,6 @@ def key(event):
             canvas.update()
 
             detruireCarre(l)
-
-# Finalement on lance la chanson avec les carres
 
 class Shape: # Celui-ci sera le responsable de creer les rectangles
     def __init__(self, id, coords, canvas):
@@ -127,7 +128,7 @@ def recommencer():
     bougerCarres()
 
 def bougerCarres(): # Meme fonction pour bouger et creer les carres
-    if not guitarre and len(touches) < 5:
+    if not guitarre and len(touches) < 5: #Ne peut commencer le jeu que si 5 touches sont assignees
         print("Les touches n'ont pas été assignées!")
     else:
         # Effacer tous les boutons
@@ -200,6 +201,7 @@ def bougerCarres(): # Meme fonction pour bouger et creer les carres
         demarrer.place(x = 305, y = ancheur/2 - 30)
 
 def points(x):
+    """Calcule points pour chaque destruction et met a jour le score total"""
     dis = canvas.coords(lignes[x][0])[1] - 420
     global score_total
     if dis>0:
@@ -222,13 +224,18 @@ def spawnerCarres(ligne):
     lignes[l].append(carre.spawn(canvas, colors[l]))
 
 def detruireCarre(l):
-    if len(lignes[l]) == 0: return # la ligne n'a aucun carre
+    if len(lignes[l]) == 0: # la ligne n'a aucun carre
+        jeu_points.append(0) #Si la touche est appuyee sans qu'il y ait de carre cela est compte comme 0% de precision. (Pour eviter le 'spam' des touches)
+        score_total=sum(jeu_points) / len(jeu_points)
 
     coor = canvas.coords(lignes[l][0])[1] + 25 # Coordonnees du centre du carre
     if coor - cen < 50 and coor - cen > -50: # Ils sont en train de se toucher, du coup on peut le detecter comme une colision
-        points(l)
+        points(l) #Calcul des points avant destruction
         canvas.delete(lignes[l][0])
         lignes[l].pop(0)
+    else: #Si la touche est appuyee trop tot, cela est compte comme 0% de precision.
+        jeu_points.append(0)
+        score_total=sum(jeu_points) / len(jeu_points)
 
 async def ecouter():
     """ Attend les touches sur la guitarre"""
@@ -292,7 +299,7 @@ if __name__ == '__main__':
     score.pack()
     score.place(x=20 ,y=150)
 
-    temps = Label(root, textvariable=temp, bg="red")
+    temps = Label(root, textvariable=temp, bg="red") #Timer
     temps.pack()
     temps.place(x=20,y=180)
 
